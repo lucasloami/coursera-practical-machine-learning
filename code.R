@@ -49,9 +49,9 @@ rf <- train(classe ~ ., data = training_data, method = "rf", trControl= tc)
 # Classification Trees
 ct <- train(classe ~ ., data = training_data, method = "rpart", trControl= tc)
 
-print(c("Naive Bayes", nb$results$Accuracy))
-print(c("Random Forest", nb$results$Accuracy))
-print(c("Classification Tree", nb$results$Accuracy))
+print(c("Naive Bayes", max(nb$results$Accuracy)))
+print(c("Random Forest", max(rf$results$Accuracy)))
+print(c("Classification Tree", max(ct$results$Accuracy)))
 
 predictions <- predict(rf, testing_data)
 

@@ -18,8 +18,8 @@ This project will analyze data from people personal activities. It aims to predi
 We need first to load the data into memory, convert special chars into NA and load the required libraries
 
 ```{r echo=TRUE}
-load(caret)
-load(ggplot2)
+library(caret)
+library(ggplot2)
 library(klaR)
 library(randomForest)
 
@@ -73,13 +73,13 @@ p
 
 First, we need to configure cross validation tasks to reduce overfitting. 
 
-```{r results='hide' echo=FALSE }
+```{r results='hide' }
 tc <- trainControl(method = "cv", number = 5, allowParallel=TRUE, verboseIter=FALSE,  preProcOptions="pca")
 ```
 
 We will compare the accuracy of 3 different models: Naive Bayes, Random Forests and Classification Trees.
 
-```{r results='hide' echo=FALSE }
+```{r results='hide' }
 nb <- train(classe ~ ., data = training_data, method = "nb", trControl= tc)
 rf <- train(classe ~ ., data = training_data, method = "rf", trControl= tc)
 ct <- train(classe ~ ., data = training_data, method = "rpart", trControl= tc)
@@ -89,7 +89,7 @@ The table below presents a comparison among the accuracies.
 
 ```{r echo=TRUE}
 model <- c("Naive Bayes", "Random Forest", "Classification Tree")
-accuracy <- c(nb$results$Accuracy, rf$results$Accuracy, ct$results$Accuracy)
+accuracy <- c(max(nb$results$Accuracy), max(rf$results$Accuracy), max(ct$results$Accuracy))
 table <- cbind(headers,accuracy)
 knitr::kable(table)
 ```
@@ -101,5 +101,3 @@ From the table above, it's possible to affirm that Random Forest is the best mod
 predictions <- predict(rf, testing_data)
 print(predictions)
 ```
-
-# Create quizz specific file

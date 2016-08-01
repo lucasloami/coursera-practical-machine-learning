@@ -90,7 +90,7 @@ The table below presents a comparison among the accuracies.
 ```{r echo=TRUE}
 model <- c("Naive Bayes", "Random Forest", "Classification Tree")
 accuracy <- c(max(nb$results$Accuracy), max(rf$results$Accuracy), max(ct$results$Accuracy))
-table <- cbind(headers,accuracy)
+table <- cbind(model,accuracy)
 knitr::kable(table)
 ```
 

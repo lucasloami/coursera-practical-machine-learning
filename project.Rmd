@@ -1,0 +1,105 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Lucas Lo Ami"
+date: "Sunday, July 31, 2016"
+output:
+  html_document:
+    theme: united
+---
+
+This project will analyze data from people personal activities. It aims to predict the manner in which they did the exercise. In order to do this, we'll use data from [ http://groupware.les.inf.puc-rio.br/har]( http://groupware.les.inf.puc-rio.br/har). The link for the training and testing data are shown below:
+
+* [Training Data](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+* [Test Data](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+
+# Data processing
+
+We need first to load the data into memory, convert special chars into NA and load the required libraries
+
+```{r echo=TRUE}
+load(caret)
+load(ggplot2)
+library(klaR)
+library(randomForest)
+
+set.seed(12345)
+
+training_data <- read.csv("data/pml-training.csv", na.strings = c("NA", "", "#DIV/0!"))
+
+testing_data <- read.csv("data/pml-testing.csv", na.strings = c("NA", "", "#DIV/0!"))
+```
+
+Now, we need to remove unnecessary columns from the datasets
+
+```{r echo=TRUE}
+# Remove variables that are irrelevant for this project
+training_data <- training_data[,-c(1:7)]
+testing_data <- testing_data[,-c(1:7)]
+
+# Remove variables that contains NA
+# we need to do this, otherwise caret will show errors 
+NAs <- apply(training_data, 2, function(x) {
+    sum(is.na(x))
+})
+training_data <- training_data[, which(NAs == 0)]
+
+# Remove near zero variance variables
+nzv_training_cols <- nearZeroVar(training_data)
+
+if(length(nzv_training_cols) > 0) training_data <- training_data[, -nzv_training_cols]
+```
+
+# Exploratory Data Analysis
+Let's see how the 'classe' variable is distributed inside the training dataset. Moreover, let's explore the size of both datasets. In this report, the summary and names of both datasets will not be displayed, but the code is shown below
+
+```{r echo=TRUE}
+# summary(training_data)
+# summary(testing_data)
+# names(training_data)
+# names(testing_data)
+
+dim(training_data)
+dim(testing_data)
+
+
+# Distribution of 'classe' variable in the training set
+p <- ggplot(data = training_data, aes(x=classe)) 
+p <- p + geom_bar()
+p
+```
+
+# Model Selection
+
+First, we need to configure cross validation tasks to reduce overfitting. 
+
+```{r results='hide' echo=FALSE }
+tc <- trainControl(method = "cv", number = 5, allowParallel=TRUE, verboseIter=FALSE,  preProcOptions="pca")
+```
+
+We will compare the accuracy of 3 different models: Naive Bayes, Random Forests and Classification Trees.
+
+```{r results='hide' echo=FALSE }
+nb <- train(classe ~ ., data = training_data, method = "nb", trControl= tc)
+rf <- train(classe ~ ., data = training_data, method = "rf", trControl= tc)
+ct <- train(classe ~ ., data = training_data, method = "rpart", trControl= tc)
+```
+
+The table below presents a comparison among the accuracies.
+
+```{r echo=TRUE}
+model <- c("Naive Bayes", "Random Forest", "Classification Tree")
+accuracy <- c(nb$results$Accuracy, rf$results$Accuracy, ct$results$Accuracy)
+table <- cbind(headers,accuracy)
+knitr::kable(table)
+```
+
+From the table above, it's possible to affirm that Random Forest is the best model for the data.
+
+# Testing the model
+```{r echo=TRUE}
+predictions <- predict(rf, testing_data)
+print(predictions)
+```
+
+# Create quizz specific file
